@@ -16,18 +16,16 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ci4ahx=rt$*sl5_a*79vu!)yo758x34_t8%*^o5!hpmm6)i-mc'
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-ci4ahx=rt$*sl5_a*79vu!)yo758x34_t8%*^o5!hpmm6)i-mc")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = str(os.environ.get("DEBUG")) == "1"
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOST", "127.0.0.1,localhost").split(",") or []
 
 # Application definition
 
@@ -38,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'storages',
     'todos',
     'accounts',
     'shared',
@@ -73,17 +72,34 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
+POSTGRES_DB = os.environ.get('POSTGRES_DB')
+POSTGRES_HOST = os.environ.get('POSTGRES_HOST')
+POSTGRES_USERNAME = os.environ.get('POSTGRES_USERNAME')
+POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD')
+POSTGRES_PORT = os.environ.get('POSTGRES_PORT')
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DEVELOPMENT = str(os.environ.get('DEVELOPMENT')) == '1'
+
+if DEVELOPMENT:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
-
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': POSTGRES_DB,
+            'USER': POSTGRES_USERNAME,
+            'PASSWORD': POSTGRES_PASSWORD,
+            'HOST': POSTGRES_HOST,
+            'PORT':POSTGRES_PORT,
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -119,12 +135,33 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
-STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static-cdn")
-
-MEDIA_URL = "/media/"
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+if not DEVELOPMENT:
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME=os.environ.get('AWS_STORAGE_BUCKET_NAME')
+    SPACE_NAME = os.environ.get('SPACE_NAME')
+    AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME')
+    AWS_S3_ENDPOINT_URL=f'https://{SPACE_NAME}.{AWS_S3_REGION_NAME}.digitaloceanspaces.com'
+    AWS_DEFAULT_ACL = 'public-read'
+    AWS_STATIC_LOCATION = 'static'
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400'
+    }
+    AWS_MEDIA_LOCATION = 'media'
+    PUBLIC_MEDIA_LOCATION = 'media'
+
+    STATIC_URL = '%s/%s/%s' % (AWS_S3_ENDPOINT_URL, AWS_STATIC_LOCATION, '/')
+    MEDIA_URL = '%s%s%s' % (AWS_S3_ENDPOINT_URL, AWS_MEDIA_LOCATION, '/')
+
+    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    DEFAULT_FILE_STORAGE = 'core.cdn.backends.MediaStorage'
+else:
+    STATIC_URL = "/static/"
+    MEDIA_URL = "/media/"
 
 
 # Default primary key field type
