@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div>
+    <h1>My Todos</h1>
+    {% if todos is not None %}
+    {% for obj in todos%}
+    <a href="{% url 'detail' obj.id %}">{{obj.name}}: {{obj.id}}</a>
+    {% endfor %}
+    {% endif %}
+    {% if user.is_authenticated %}
+    <p><a href="{% url 'add_task' %}">Add New Task</a></p>
+    {% endif %}
+</div>
+{% endblock content %}
