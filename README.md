@@ -9,7 +9,8 @@
    ```
 
 1. Update requirements.txt.
-
+1. Create an env file.
+1. Ensure your .env is in your git ignore or use the following [link](https://www.toptal.com/developers/gitignore/api/django)
 1. Create an `.env` file in the root directory of the project.
    ```shell
    touch .env
@@ -280,3 +281,11 @@
    ```
 
 1. Commit and push your code.
+
+## References
+
+- [How to Set Up a Scalable Django App with DigitalOcean Managed Databases and Spaces](https://www.digitalocean.com/community/tutorials/how-to-set-up-a-scalable-django-app-with-digitalocean-managed-databases-and-spaces)
+- [How to Configure CORS on DigitalOcean Spaces](https://docs.digitalocean.com/products/spaces/how-to/configure-cors/)
+- [Deploy a Django App on App Platform](https://docs.digitalocean.com/tutorials/app-deploy-django-app/)
+- Django [storages](https://django-storages.readthedocs.io/en/latest/backends/digital-ocean-spaces.html)
+- [Django + DigitalOcean Spaces](https://blog.devgenius.io/django-digitalocean-spaces-a12b4a053628)
